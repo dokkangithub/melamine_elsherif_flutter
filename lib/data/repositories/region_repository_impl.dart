@@ -124,7 +124,7 @@ class RegionRepositoryImpl implements RegionRepository {
           (failure) => Left(failure),
           (regions) {
             final filteredRegions = regions.where((region) => 
-              region.countries!.any((country) =>
+              region.countries!.any((country) => 
                 country.iso2.toLowerCase() == countryCode.toLowerCase() ||
                 country.iso3.toLowerCase() == countryCode.toLowerCase()
               )
@@ -152,7 +152,7 @@ class RegionRepositoryImpl implements RegionRepository {
       try {
         final localRegions = await _localDataSource.getRegions();
         final filteredRegions = localRegions.where((region) => 
-          region.countries!.any((country) =>
+          region.countries!.any((country) => 
             country.iso2.toLowerCase() == countryCode.toLowerCase() ||
             country.iso3.toLowerCase() == countryCode.toLowerCase()
           )
@@ -200,7 +200,7 @@ class RegionRepositoryImpl implements RegionRepository {
       try {
         final localRegions = await _localDataSource.getRegions();
         final filteredRegions = localRegions.where((region) => 
-          region.countries!.any((country) =>
+          region.countries!.any((country) => 
             country.iso2.toLowerCase() == countryCode.toLowerCase() ||
             country.iso3.toLowerCase() == countryCode.toLowerCase()
           )
