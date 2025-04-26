@@ -15,12 +15,10 @@ class UpdateCart implements UseCase<Cart, UpdateCartParams> {
   @override
   Future<Either<Failure, Cart>> call(UpdateCartParams params) async {
     return await repository.updateCart(
-      params.id,
-      regionId: params.regionId,
-      email: params.email,
-      billingAddressId: params.billingAddressId,
-      shippingAddressId: params.shippingAddressId,
-      metadata: params.metadata,
+      cartId: params.cartId,
+      lineItemId: params.lineItemId,
+      quantity: params.quantity,
+      discountCode: params.discountCode,
     );
   }
 }
@@ -28,40 +26,30 @@ class UpdateCart implements UseCase<Cart, UpdateCartParams> {
 /// Parameters for [UpdateCart]
 class UpdateCartParams extends Equatable {
   /// The ID of the cart to update
-  final String id;
+  final String cartId;
   
-  /// The region ID to set
-  final String? regionId;
+  /// The line item ID to update
+  final String? lineItemId;
   
-  /// The email to set
-  final String? email;
+  /// The quantity to set
+  final int? quantity;
   
-  /// The billing address ID to set
-  final String? billingAddressId;
-  
-  /// The shipping address ID to set
-  final String? shippingAddressId;
-  
-  /// The metadata to set
-  final Map<String, dynamic>? metadata;
+  /// The discount code to apply
+  final String? discountCode;
 
   /// Creates an [UpdateCartParams] instance
   const UpdateCartParams({
-    required this.id,
-    this.regionId,
-    this.email,
-    this.billingAddressId,
-    this.shippingAddressId,
-    this.metadata,
+    required this.cartId,
+    this.lineItemId,
+    this.quantity,
+    this.discountCode,
   });
 
   @override
   List<Object?> get props => [
-    id,
-    regionId,
-    email,
-    billingAddressId,
-    shippingAddressId,
-    metadata,
+    cartId,
+    lineItemId,
+    quantity,
+    discountCode,
   ];
 } 

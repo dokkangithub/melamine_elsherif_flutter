@@ -14,9 +14,9 @@ class RemoveLineItem implements UseCase<Cart, RemoveLineItemParams> {
 
   @override
   Future<Either<Failure, Cart>> call(RemoveLineItemParams params) async {
-    return await repository.removeLineItem(
-      params.cartId,
-      params.lineItemId,
+    return await repository.removeItem(
+      cartId: params.cartId,
+      lineItemId: params.lineItemId,
     );
   }
 }

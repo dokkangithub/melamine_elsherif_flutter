@@ -1,45 +1,44 @@
 import 'package:dartz/dartz.dart';
 import 'package:melamine_elsherif/core/error/failures.dart';
 import 'package:melamine_elsherif/domain/entities/cart.dart';
-import 'package:melamine_elsherif/domain/entities/line_item.dart';
 import 'package:melamine_elsherif/domain/entities/shipping_option.dart';
 
 /// Repository interface for cart-related operations
 abstract class CartRepository {
+  /// Get the current cart or find by ID
+  Future<Either<Failure, Cart>> getCart({String? cartId});
+  
   /// Creates a new cart
   Future<Either<Failure, Cart>> createCart();
-
-  /// Gets an existing cart by ID
-  Future<Either<Failure, Cart>> getCart(String id);
-
-  /// Updates a cart
-  Future<Either<Failure, Cart>> updateCart(String id, {
+  
+  /// Add an item to the cart
+  Future<Either<Failure, Cart>> addItem({
+    String? cartId,
+    required String variantId,
+    int quantity = 1,
+  });
+  
+  /// Remove an item from the cart
+  Future<Either<Failure, Cart>> removeItem({
+    required String cartId,
+    required String lineItemId,
+  });
+  
+  /// Update cart (item quantity, apply discount, etc)
+  Future<Either<Failure, Cart>> updateCart({
+    required String cartId,
+    String? lineItemId,
+    int? quantity,
+    String? discountCode,
     String? regionId,
     String? email,
     String? billingAddressId,
     String? shippingAddressId,
     Map<String, dynamic>? metadata,
   });
-
-  /// Adds a line item to a cart
-  Future<Either<Failure, Cart>> addLineItem(
-    String cartId, 
-    String variantId, 
-    int quantity,
-  );
-
-  /// Updates a line item in a cart
-  Future<Either<Failure, Cart>> updateLineItem(
-    String cartId,
-    String lineItemId,
-    int quantity,
-  );
-
-  /// Removes a line item from a cart
-  Future<Either<Failure, Cart>> removeLineItem(
-    String cartId,
-    String lineItemId,
-  );
+  
+  /// Complete the checkout process for a cart
+  Future<Either<Failure, Cart>> completeCart(String cartId);
 
   /// Adds a shipping method to a cart
   Future<Either<Failure, Cart>> addShippingMethod(
@@ -64,9 +63,6 @@ abstract class CartRepository {
     Map<String, dynamic> data,
   );
 
-  /// Completes a cart and converts it to an order
-  Future<Either<Failure, Map<String, dynamic>>> completeCart(String cartId);
-  
   /// Retrieves the shipping options for a cart
   Future<Either<Failure, List<ShippingOption>>> getShippingOptions(String cartId);
 } 

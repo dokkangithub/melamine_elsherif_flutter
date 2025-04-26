@@ -2,25 +2,27 @@ import 'package:flutter/material.dart';
 
 class PasswordField extends StatefulWidget {
   final TextEditingController controller;
-  final String? hintText;
   final String? labelText;
+  final String? hintText;
   final String? errorText;
   final Widget? prefixIcon;
   final TextInputAction? textInputAction;
-  final Function(String)? onChanged;
-  final Function(String)? onSubmitted;
+  final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
+  final FormFieldValidator<String>? validator;
 
   const PasswordField({
-    super.key,
+    Key? key,
     required this.controller,
-    this.hintText,
     this.labelText,
+    this.hintText,
     this.errorText,
     this.prefixIcon,
     this.textInputAction,
     this.onChanged,
     this.onSubmitted,
-  });
+    this.validator,
+  }) : super(key: key);
 
   @override
   State<PasswordField> createState() => _PasswordFieldState();
@@ -31,20 +33,22 @@ class _PasswordFieldState extends State<PasswordField> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return TextField(
+    return TextFormField(
       controller: widget.controller,
       obscureText: _obscureText,
+      textInputAction: widget.textInputAction ?? TextInputAction.done,
+      onChanged: widget.onChanged,
+      onFieldSubmitted: widget.onSubmitted,
+      validator: widget.validator,
       decoration: InputDecoration(
-        hintText: widget.hintText,
         labelText: widget.labelText,
+        hintText: widget.hintText,
         errorText: widget.errorText,
-        prefixIcon: widget.prefixIcon,
+        prefixIcon: widget.prefixIcon ?? const Icon(Icons.lock_outline),
         suffixIcon: IconButton(
           icon: Icon(
-            _obscureText ? Icons.visibility_off : Icons.visibility,
-            color: theme.colorScheme.onSurfaceVariant,
+            _obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+            color: Colors.grey,
           ),
           onPressed: () {
             setState(() {
@@ -52,34 +56,29 @@ class _PasswordFieldState extends State<PasswordField> {
             });
           },
         ),
+        filled: true,
+        fillColor: Colors.grey[100],
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Color(0xFFBD5D5D)),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.error, width: 2),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Colors.red),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.error, width: 2),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Colors.red),
         ),
-        filled: true,
-        fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.3),
       ),
-      style: theme.textTheme.bodyLarge,
-      keyboardType: TextInputType.visiblePassword,
-      textInputAction: widget.textInputAction,
-      onChanged: widget.onChanged,
-      onSubmitted: widget.onSubmitted,
     );
   }
 } 

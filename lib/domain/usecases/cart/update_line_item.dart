@@ -14,10 +14,10 @@ class UpdateLineItem implements UseCase<Cart, UpdateLineItemParams> {
 
   @override
   Future<Either<Failure, Cart>> call(UpdateLineItemParams params) async {
-    return await repository.updateLineItem(
-      params.cartId,
-      params.lineItemId,
-      params.quantity,
+    return await repository.updateCart(
+      cartId: params.cartId,
+      lineItemId: params.lineItemId,
+      quantity: params.quantity,
     );
   }
 }
@@ -30,7 +30,7 @@ class UpdateLineItemParams extends Equatable {
   /// The ID of the line item to update
   final String lineItemId;
   
-  /// The new quantity to set
+  /// The new quantity of the line item
   final int quantity;
 
   /// Creates an [UpdateLineItemParams] instance

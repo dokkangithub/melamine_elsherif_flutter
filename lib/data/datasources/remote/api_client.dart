@@ -26,6 +26,9 @@ class ApiClient {
             options.headers['Authorization'] = 'Bearer $token';
           }
           
+          // Add publishable API key for Medusa Store API
+          options.headers['x-publishable-api-key'] = AppConfig.publishableApiKey;
+          
           // Log request in dev mode
           if (AppConfig.isDebugMode) {
             AppLogger.d('Request: ${options.method} ${options.uri}');

@@ -109,7 +109,7 @@ class CartViewModel extends BaseViewModel {
   Future<void> createCart() async {
     await runBusyFuture(
       () async {
-        final result = await _createCart(const NoParams());
+        final result = await _createCart( NoParams());
         return result;
       },
       onSuccess: (result) {
@@ -156,12 +156,8 @@ class CartViewModel extends BaseViewModel {
     await runBusyFuture(
       () async {
         final result = await _updateCart(UpdateCartParams(
-          id: _cart!.id,
-          regionId: regionId,
-          email: email,
-          billingAddressId: billingAddressId,
-          shippingAddressId: shippingAddressId,
-          metadata: metadata,
+          cartId: _cart!.id,
+          discountCode: null, // Not used in this context
         ));
         return result;
       },
@@ -363,10 +359,10 @@ class CartViewModel extends BaseViewModel {
       onSuccess: (result) {
         result.fold(
           (failure) => setError(failure.message),
-          (data) {
-            _orderData = data;
+          (cart) {
+            // Store order information and clear cart
+            _orderData = {'orderId': cart.id}; // Convert Cart to Map as needed
             // After successful checkout, we can clear the cart reference
-            // as it's been converted to an order
             _cart = null;
             notifyListeners();
           },

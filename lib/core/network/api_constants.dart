@@ -1,23 +1,29 @@
 /// Constants for the API
 class ApiConstants {
   // Base URL for the Medusa Store API
-  static const String baseUrl = 'https://api.medusajs.com/store';
+  static const String baseUrl = 'http://192.168.1.38:9000';
+
+  // Store API prefix
+  static const String storePrefix = '/store';
+
+  // API Keys
+  static const String publishableApiKey = 'pk_0dc294039a0473afc80df2a056f9435e525135f2074cb63ec024c559438867b8';
 
   // Timeouts
   static const int connectTimeout = 30000; // 30 seconds
   static const int receiveTimeout = 30000; // 30 seconds
 
   // API Endpoints
-  static const String products = '/products';
-  static const String cart = '/carts';
-  static const String customers = '/customers';
-  static const String auth = '/auth';
-  static const String orders = '/orders';
-  static const String regions = '/regions';
-  static const String shipping = '/shipping-options';
-  static const String returns = '/returns';
-  static const String swaps = '/swaps';
-  static const String collections = '/collections';
+  static const String products = '$storePrefix/products';
+  static const String carts = '$storePrefix/carts';
+  static const String customers = '$storePrefix/customers';
+  static const String auth = '$storePrefix/auth';
+  static const String orders = '$storePrefix/orders';
+  static const String regions = '$storePrefix/regions';
+  static const String shipping = '$storePrefix/shipping-options';
+  static const String returns = '$storePrefix/returns';
+  static const String swaps = '$storePrefix/swaps';
+  static const String collections = '$storePrefix/collections';
   
   // Authentication
   static const String login = '$auth/token';
@@ -27,14 +33,14 @@ class ApiConstants {
   static const String me = '$customers/me';
   
   // Products
-  static const String productCategories = '/product-categories';
-  static const String productTags = '/product-tags';
-  static const String productTypes = '/product-types';
+  static const String productCategories = '$storePrefix/product-categories';
+  static const String productTags = '$storePrefix/product-tags';
+  static const String productTypes = '$storePrefix/product-types';
   
   // Cart
-  static const String addToCart = '$cart/:id/line-items';
-  static const String updateCart = '$cart/:id';
-  static const String completeCart = '$cart/:id/complete';
+  static const String addToCart = '$carts/:id/line-items';
+  static const String updateCart = '$carts/:id';
+  static const String completeCart = '$carts/:id/complete';
   
   // Orders
   static const String customerOrders = '$customers/me/orders';

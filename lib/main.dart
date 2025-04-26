@@ -1,60 +1,84 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
-import 'package:melamine_elsherif/core/theme/app_theme.dart';
-import 'package:melamine_elsherif/core/utils/app_router.dart';
-import 'package:melamine_elsherif/core/utils/app_constants.dart';
-import 'package:melamine_elsherif/core/utils/logger.dart';
-import 'package:melamine_elsherif/di/service_locator.dart';
-import 'package:melamine_elsherif/presentation/viewmodels/cart_viewmodel.dart';
-import 'package:melamine_elsherif/presentation/viewmodels/home_viewmodel.dart';
-import 'package:melamine_elsherif/presentation/viewmodels/product_viewmodel.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:melamine_elsherif/core/di/service_locator.dart' as di;
+import 'package:melamine_elsherif/presentation/screens/home/home_screen.dart';
+import 'package:melamine_elsherif/presentation/screens/splash/splash_screen.dart';
+import 'package:melamine_elsherif/presentation/viewmodels/product/product_view_model.dart';
+import 'package:melamine_elsherif/presentation/viewmodels/auth_viewmodel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize logger
-  AppLogger.init();
-
-  // Initialize service locator
-  await initServiceLocator();
-
+  // Initialize dependency injection
+  await di.init();
+  
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<HomeViewModel>(
-          create: (_) => serviceLocator<HomeViewModel>(),
+        ChangeNotifierProvider(
+          create: (_) => di.sl<ProductViewModel>(),
         ),
-        ChangeNotifierProvider<ProductViewModel>(
-          create: (_) => serviceLocator<ProductViewModel>(),
+        ChangeNotifierProvider(
+          create: (_) => di.sl<AuthViewModel>(),
         ),
-        ChangeNotifierProvider<CartViewModel>(
-          create: (_) => serviceLocator<CartViewModel>(),
-        ),
+        // Add other providers here as needed
       ],
       child: MaterialApp(
+        title: 'Melamine Elsherif',
         debugShowCheckedModeBanner: false,
-        title: AppConstants.appName,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
-        onGenerateRoute: AppRouter.generateRoute,
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('en', ''), // English
-          Locale('ar', ''), // Arabic
-        ],
+        theme: ThemeData(
+          primaryColor: const Color(0xFFBD5D5D),
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFFBD5D5D),
+            primary: const Color(0xFFBD5D5D),
+            secondary: const Color(0xFFE57373),
+          ),
+          scaffoldBackgroundColor: Colors.white,
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black,
+            elevation: 0,
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: Colors.grey[100],
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: Color(0xFFBD5D5D)),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: Colors.red),
+            ),
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFBD5D5D),
+              foregroundColor: Colors.white,
+              minimumSize: const Size(double.infinity, 50),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        ),
+        home: const SplashScreen(),
       ),
     );
   }

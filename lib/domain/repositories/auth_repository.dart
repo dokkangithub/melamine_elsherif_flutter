@@ -1,11 +1,12 @@
 import 'package:dartz/dartz.dart';
 import 'package:melamine_elsherif/core/error/failures.dart';
+import 'package:melamine_elsherif/domain/entities/login_response.dart';
 import 'package:melamine_elsherif/domain/entities/user.dart';
 
 /// Repository interface for authentication related operations
 abstract class AuthRepository {
   /// Logs in a user with email and password
-  Future<Either<Failure, User>> login({
+  Future<Either<Failure, LoginResponse>> login({
     required String email, 
     required String password,
   });

@@ -1,6 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:melamine_elsherif/core/constants/app_assets.dart';
+import 'package:melamine_elsherif/data/datasources/local/app_preferences.dart';
+import 'package:melamine_elsherif/di/service_locator.dart';
+import 'package:melamine_elsherif/presentation/screens/auth/login_screen.dart';
+import 'package:melamine_elsherif/presentation/screens/home/home_screen.dart';
 import 'package:melamine_elsherif/presentation/screens/onboarding/onboarding_screen.dart';
 import 'package:melamine_elsherif/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:provider/provider.dart';
@@ -16,6 +20,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
+  
+  // Get app preferences to check first launch status
+  final AppPreferences _appPreferences = serviceLocator<AppPreferences>();
 
   @override
   void initState() {
@@ -55,22 +62,32 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     
     // Navigate to next screen after delay
     Timer(const Duration(seconds: 2), () {
-      // Check if user is authenticated and navigate accordingly
-      if (authViewModel.isAuthenticated) {
-        // Navigate to home screen if already logged in
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const OnboardingScreen(),
-          ),
-        );
-      } else {
-        // Check if first launch and navigate to onboarding or login
-        // For now, always navigate to onboarding
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const OnboardingScreen(),
-          ),
-        );
+      if (mounted) {
+        // Check if it's the first launch
+        final isFirstLaunch = _appPreferences.isFirstLaunch();
+        
+        if (isFirstLaunch) {
+          // Navigate to onboarding for first launch
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const OnboardingScreen(),
+            ),
+          );
+        } else if (authViewModel.isAuthenticated) {
+          // Navigate to home screen if already logged in
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const HomeScreen(),
+            ),
+          );
+        } else {
+          // Navigate to login screen
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const LoginScreen(),
+            ),
+          );
+        }
       }
     });
   }

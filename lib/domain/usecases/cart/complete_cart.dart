@@ -2,17 +2,18 @@ import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import 'package:melamine_elsherif/core/error/failures.dart';
 import 'package:melamine_elsherif/core/usecases/usecase.dart';
+import 'package:melamine_elsherif/domain/entities/cart.dart';
 import 'package:melamine_elsherif/domain/repositories/cart_repository.dart';
 
 /// Completes a cart checkout use case
-class CompleteCart implements UseCase<Map<String, dynamic>, CompleteCartParams> {
+class CompleteCart implements UseCase<Cart, CompleteCartParams> {
   final CartRepository repository;
 
   /// Creates a [CompleteCart] instance
   CompleteCart(this.repository);
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> call(CompleteCartParams params) async {
+  Future<Either<Failure, Cart>> call(CompleteCartParams params) async {
     return await repository.completeCart(params.cartId);
   }
 }

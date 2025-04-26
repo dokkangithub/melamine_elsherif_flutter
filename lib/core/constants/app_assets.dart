@@ -41,8 +41,8 @@ class AppAssets {
   static const String categoryOctagon = 'assets/images/category_octagon.png';
 
   // Placeholders
-  static const String productPlaceholder = 'assets/images/product_placeholder.png';
-  static const String userPlaceholder = 'assets/images/user_placeholder.png';
+  static const String productPlaceholder = 'assets/images/product_placeholder.png';//
+  static const String userPlaceholder = 'assets/images/user_placeholder.png';//
   
   // Authentication
   static const String googleLogo = 'assets/icons/google_logo.svg';

@@ -14,10 +14,10 @@ class AddLineItem implements UseCase<Cart, AddLineItemParams> {
 
   @override
   Future<Either<Failure, Cart>> call(AddLineItemParams params) async {
-    return await repository.addLineItem(
-      params.cartId,
-      params.variantId,
-      params.quantity,
+    return await repository.addItem(
+      cartId: params.cartId,
+      variantId: params.variantId,
+      quantity: params.quantity,
     );
   }
 }

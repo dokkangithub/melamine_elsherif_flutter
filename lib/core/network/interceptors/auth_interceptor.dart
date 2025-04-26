@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:melamine_elsherif/core/services/secure_storage_service.dart';
+import 'package:melamine_elsherif/core/network/api_constants.dart';
 
 /// Interceptor that adds authentication token to requests
 class AuthInterceptor extends Interceptor {
@@ -16,6 +17,11 @@ class AuthInterceptor extends Interceptor {
     // Add token to request header if available
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
+    }
+    
+    // Add publishable API key to all store API requests
+    if (options.path.contains(ApiConstants.storePrefix)) {
+      options.headers['x-publishable-api-key'] = ApiConstants.publishableApiKey;
     }
     
     // Continue with the request

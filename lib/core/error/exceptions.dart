@@ -1,17 +1,36 @@
-/// Exception for server errors
-class ServerException implements Exception {
-  final String message;
-
-  /// Creates a [ServerException] instance
-  ServerException({this.message = 'Server Error'});
-}
-
-/// Exception for cache errors
-class CacheException implements Exception {
+/// Base class for all exceptions in the application
+class AppException implements Exception {
   final String message;
   
-  /// Creates a [CacheException] instance
-  CacheException({this.message = 'Cache Error'});
+  AppException({required this.message});
+  
+  @override
+  String toString() => message;
+}
+
+/// Exception thrown when there is a problem with the server
+class ServerException extends AppException {
+  ServerException({required String message}) : super(message: message);
+}
+
+/// Exception thrown when there is a problem with the cache
+class CacheException extends AppException {
+  CacheException({required String message}) : super(message: message);
+}
+
+/// Exception thrown when there is a problem with the network
+class NetworkException extends AppException {
+  NetworkException({required String message}) : super(message: message);
+}
+
+/// Exception thrown when there is a problem with the authentication
+class AuthException extends AppException {
+  AuthException({required String message}) : super(message: message);
+}
+
+/// Exception thrown when there is a validation error
+class ValidationException extends AppException {
+  ValidationException({required String message}) : super(message: message);
 }
 
 /// Exception for API errors
@@ -21,29 +40,4 @@ class ApiException implements Exception {
   
   /// Creates a [ApiException] instance
   ApiException({required this.message, this.statusCode});
-}
-
-/// Exception for network errors
-class NetworkException implements Exception {
-  final String message;
-  
-  /// Creates a [NetworkException] instance
-  NetworkException({this.message = 'Network Error'});
-}
-
-/// Exception for validation errors
-class ValidationException implements Exception {
-  final String message;
-  final Map<String, List<String>>? errors;
-  
-  /// Creates a [ValidationException] instance
-  ValidationException({required this.message, this.errors});
-}
-
-/// Exception for authentication errors
-class AuthException implements Exception {
-  final String message;
-  
-  /// Creates an [AuthException] instance
-  AuthException({this.message = 'Authentication Error'});
 } 

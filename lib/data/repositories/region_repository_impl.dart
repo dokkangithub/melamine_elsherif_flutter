@@ -109,7 +109,7 @@ class RegionRepositoryImpl implements RegionRepository {
         }
         return const Left(CacheFailure(message: 'Region not found in cache'));
       } catch (e) {
-        return Left(CacheFailure(message: 'Unable to get region from cache'));
+        return const Left(CacheFailure(message: 'Unable to get region from cache'));
       }
     }
   }

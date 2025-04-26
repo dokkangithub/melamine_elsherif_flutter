@@ -1,25 +1,27 @@
-import 'package:melamine_elsherif/domain/entities/address.dart';
+import '../../domain/entities/address.dart';
 
 /// Model class for address data from the API
 class AddressModel extends Address {
   /// Creates an [AddressModel] instance
   const AddressModel({
     required String id,
-    String? customerId,
-    String? firstName,
-    String? lastName,
+    required String customerId,
+    required String firstName,
+    required String lastName,
     String? company,
-    String? address1,
+    required String address1,
     String? address2,
-    String? city,
-    String? countryCode,
+    required String city,
     String? province,
     String? postalCode,
-    String? phone,
+    required String country,
+    required String phone,
+    String? addressType,
     Map<String, dynamic>? metadata,
-    required DateTime createdAt,
-    required DateTime updatedAt,
+    DateTime? createdAt,
+    DateTime? updatedAt,
     DateTime? deletedAt,
+    bool isDefault = false,
   }) : super(
           id: id,
           customerId: customerId,
@@ -29,14 +31,16 @@ class AddressModel extends Address {
           address1: address1,
           address2: address2,
           city: city,
-          countryCode: countryCode,
           province: province,
           postalCode: postalCode,
+          country: country,
           phone: phone,
+          addressType: addressType,
           metadata: metadata,
           createdAt: createdAt,
           updatedAt: updatedAt,
           deletedAt: deletedAt,
+          isDefault: isDefault,
         );
 
   /// Creates an [AddressModel] instance from JSON data
@@ -50,19 +54,22 @@ class AddressModel extends Address {
       address1: json['address_1'],
       address2: json['address_2'],
       city: json['city'],
-      countryCode: json['country_code'],
       province: json['province'],
       postalCode: json['postal_code'],
+      country: json['country'],
       phone: json['phone'],
+      addressType: json['address_type'],
       metadata: json['metadata'],
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
-          : DateTime.now(),
+          : null,
       updatedAt: json['updated_at'] != null
           ? DateTime.parse(json['updated_at'])
-          : DateTime.now(),
-      deletedAt:
-          json['deleted_at'] != null ? DateTime.parse(json['deleted_at']) : null,
+          : null,
+      deletedAt: json['deleted_at'] != null
+          ? DateTime.parse(json['deleted_at'])
+          : null,
+      isDefault: json['is_default'] ?? false,
     );
   }
 
@@ -77,14 +84,39 @@ class AddressModel extends Address {
       'address_1': address1,
       'address_2': address2,
       'city': city,
-      'country_code': countryCode,
       'province': province,
       'postal_code': postalCode,
+      'country': country,
       'phone': phone,
+      'address_type': addressType,
       'metadata': metadata,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
       'deleted_at': deletedAt?.toIso8601String(),
+      'is_default': isDefault,
     };
+  }
+
+  factory AddressModel.fromAddress(Address address) {
+    return AddressModel(
+      id: address.id,
+      customerId: address.customerId,
+      firstName: address.firstName,
+      lastName: address.lastName,
+      company: address.company,
+      address1: address.address1,
+      address2: address.address2,
+      city: address.city,
+      province: address.province,
+      postalCode: address.postalCode,
+      country: address.country,
+      phone: address.phone,
+      addressType: address.addressType,
+      metadata: address.metadata,
+      createdAt: address.createdAt,
+      updatedAt: address.updatedAt,
+      deletedAt: address.deletedAt,
+      isDefault: address.isDefault,
+    );
   }
 } 

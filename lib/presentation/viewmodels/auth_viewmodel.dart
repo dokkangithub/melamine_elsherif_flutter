@@ -1,10 +1,10 @@
-import 'package:dartz/dartz.dart';
-import 'package:melamine_elsherif/core/error/failures.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:melamine_elsherif/domain/entities/user.dart';
 import 'package:melamine_elsherif/domain/usecases/auth/get_current_user.dart';
 import 'package:melamine_elsherif/domain/usecases/auth/login.dart';
 import 'package:melamine_elsherif/domain/usecases/auth/logout.dart';
 import 'package:melamine_elsherif/domain/usecases/auth/register.dart';
+import 'package:melamine_elsherif/domain/usecases/auth/request_password_reset.dart';
 import 'package:melamine_elsherif/presentation/viewmodels/base_viewmodel.dart';
 
 class AuthViewModel extends BaseViewModel {
@@ -12,18 +12,24 @@ class AuthViewModel extends BaseViewModel {
   final Register register;
   final Logout logout;
   final GetCurrentUser getCurrentUser;
+  final RequestPasswordReset requestPasswordResetUseCase;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   AuthViewModel({
     required this.login,
     required this.register,
     required this.logout,
     required this.getCurrentUser,
+    required this.requestPasswordResetUseCase,
   });
 
   User? _currentUser;
   User? get currentUser => _currentUser;
 
   bool get isAuthenticated => _currentUser != null;
+
+  String? _jwtToken;
+  String? get jwtToken => _jwtToken;
 
   // Initialize the view model by checking if user is logged in
   Future<void> init() async {
@@ -49,13 +55,16 @@ class AuthViewModel extends BaseViewModel {
             setError(failure.message);
             success = false;
           },
-          (user) {
-            _currentUser = user;
+          (loginResponse) {
+            _currentUser = loginResponse.user;
+            _jwtToken = loginResponse.token;
+            _secureStorage.write(key: 'auth_token', value: _jwtToken);
             success = true;
           },
         );
       },
       onError: (error) {
+        setError(error.toString());
         success = false;
       },
     );
@@ -116,6 +125,7 @@ class AuthViewModel extends BaseViewModel {
           },
           (_) {
             _currentUser = null;
+            _secureStorage.delete(key: 'auth_token');
             success = true;
           },
         );
@@ -126,4 +136,36 @@ class AuthViewModel extends BaseViewModel {
     );
     return success;
   }
-} 
+  
+  // Request password reset
+  Future<bool> requestPasswordReset({required String email}) async {
+    bool success = false;
+    await runBusyFuture(
+      () => requestPasswordResetUseCase.execute(email: email),
+      onSuccess: (result) {
+        result.fold(
+          (failure) {
+            setError(failure.message);
+            success = false;
+          },
+          (_) {
+            success = true;
+          },
+        );
+      },
+      onError: (error) {
+        success = false;
+      },
+    );
+    return success;
+  }
+
+  // Clear token on startup for troubleshooting login issues
+  Future<void> clearTokenOnStartup() async {
+    try {
+      await _secureStorage.delete(key: 'auth_token');
+    } catch (e) {
+      setError('Failed to clear token: ${e.toString()}');
+    }
+  }
+}

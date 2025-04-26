@@ -8,14 +8,14 @@ abstract class NetworkInfo {
 
 /// Implementation of [NetworkInfo] using connectivity_plus
 class NetworkInfoImpl implements NetworkInfo {
-  final Connectivity connectivity;
+  final Connectivity connectionChecker;
 
   /// Creates a [NetworkInfoImpl] instance
-  NetworkInfoImpl(this.connectivity);
+  NetworkInfoImpl(this.connectionChecker);
 
   @override
   Future<bool> get isConnected async {
-    final result = await connectivity.checkConnectivity();
+    final result = await connectionChecker.checkConnectivity();
     return result != ConnectivityResult.none;
   }
 } 

@@ -13,19 +13,19 @@ class GetCart implements UseCase<Cart, GetCartParams> {
   GetCart(this.repository);
 
   @override
-  Future<Either<Failure, Cart>> call(GetCartParams params) async {
-    return await repository.getCart(params.cartId);
+  Future<Either<Failure, Cart>> call([GetCartParams? params]) async {
+    return await repository.getCart(cartId: params?.cartId);
   }
 }
 
 /// Parameters for [GetCart]
 class GetCartParams extends Equatable {
   /// The ID of the cart to get
-  final String cartId;
+  final String? cartId;
 
   /// Creates a [GetCartParams] instance
-  const GetCartParams({required this.cartId});
+  const GetCartParams({this.cartId});
 
   @override
-  List<Object> get props => [cartId];
+  List<Object?> get props => [cartId];
 } 

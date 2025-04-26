@@ -5,7 +5,10 @@ class AppConfig {
   AppConfig._();
   
   // API Base URL - uses Medusa Store API
-  static const String baseUrl = 'https://api.medusajs.com/store';
+  static const String baseUrl = 'http://192.168.1.38:9000';
+  
+  // Publishable API Key for Medusa Store API
+  static const String publishableApiKey = 'pk_0dc294039a0473afc80df2a056f9435e525135f2074cb63ec024c559438867b8';
   
   // Debug mode flag
   static bool get isDebugMode => kDebugMode;
