@@ -274,6 +274,50 @@ class ProductViewModel extends ChangeNotifier {
     return getProducts(search: query);
   }
 
+  /// Fetches bestseller products
+  Future<void> getBestsellers() async {
+    _isLoadingFeatured = true;
+    _featuredError = null;
+    notifyListeners();
+
+    final result = await _productRepository.getBestsellers();
+
+    result.fold(
+      (failure) {
+        _featuredError = _getErrorMessage(failure);
+        _isLoadingFeatured = false;
+      },
+      (products) {
+        _featuredProducts = products;
+        _isLoadingFeatured = false;
+      },
+    );
+
+    notifyListeners();
+  }
+
+  /// Fetches today's best deals
+  Future<void> getTodaysBestDeals() async {
+    _isLoadingFeatured = true;
+    _featuredError = null;
+    notifyListeners();
+
+    final result = await _productRepository.getTodaysBestDeals();
+
+    result.fold(
+      (failure) {
+        _featuredError = _getErrorMessage(failure);
+        _isLoadingFeatured = false;
+      },
+      (products) {
+        _featuredProducts = products;
+        _isLoadingFeatured = false;
+      },
+    );
+
+    notifyListeners();
+  }
+
   /// Helper method to get user-friendly error messages
   String _getErrorMessage(Failure failure) {
     if (failure is ServerFailure) {

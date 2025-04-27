@@ -10,7 +10,6 @@ export 'cart_viewmodel.dart' hide CartViewModel;
 export 'cart/cart_view_model.dart';
 
 // Product viewmodels
-export 'product_viewmodel.dart' hide ProductViewModel;
 export 'product/product_view_model.dart';
 export 'product/wishlist_view_model.dart';
 

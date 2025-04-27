@@ -1,0 +1,434 @@
+# Medusa Authentication System - Integration Guide
+
+## Overview
+
+This document provides a comprehensive guide to Medusa's authentication system, explaining the core components, flows, and best practices for implementing authentication in your application. This guide will help Cursor understand our current implementation and make improvements to provide the best UX for our authentication feature.
+
+## Table of Contents
+
+1. [Authentication Architecture](#authentication-architecture)
+2. [Authentication Flows](#authentication-flows)
+3. [Available Authentication Providers](#available-authentication-providers)
+4. [Authentication APIs and Endpoints](#authentication-apis-and-endpoints)
+5. [Client-Side Integration](#client-side-integration)
+6. [Best Practices for Authentication UX](#best-practices-for-authentication-ux)
+7. [Current Implementation Issues and Enhancement Requests](#current-implementation-issues-and-enhancement-requests)
+
+## Authentication Architecture
+
+Medusa provides a flexible authentication system built around the following key components:
+
+- **Auth Module Service**: Core service that handles authentication, registration, and token management
+- **Auth Providers**: Pluggable authentication mechanisms (email/password, OAuth providers, etc.)
+- **Authentication Strategies**: Methods used to authenticate (JWT, session cookies, API keys)
+- **Actor Types**: Different user types in the system (customers, admins, vendors, etc.)
+
+### Key Concepts
+
+- **Auth Identity**: Represents a user's authentication details for a specific provider
+- **JWT Tokens**: Used for stateless authentication 
+- **Session Cookies**: Used for stateful authentication
+- **API Keys**: Used for service-to-service authentication
+
+## Authentication Flows
+
+### Basic Authentication (Email/Password)
+
+1. **Registration Flow**:
+   ```typescript
+   const { success, authIdentity, error } = await authModuleService.register(
+     "emailpass",
+     {
+       email: "user@example.com",
+       password: "supersecret"
+     }
+   )
+   
+   if (error) {
+     // Registration failed
+     return
+   }
+   // Registration successful
+   ```
+
+2. **Login Flow**:
+   ```typescript
+   const { success, authIdentity, location, error } = await authModuleService.authenticate(
+     "emailpass",
+     {
+       email: "user@example.com",
+       password: "supersecret"
+     }
+   )
+   
+   if (!success) {
+     // Authentication failed
+     return
+   }
+   
+   // User is authenticated
+   ```
+
+### Third-Party Authentication (OAuth)
+
+1. **Initiate Authentication**:
+   ```typescript
+   const { success, location } = await authModuleService.authenticate(
+     "google",
+     {
+       // Optional: custom callback URL
+       callback_url: "https://example.com/auth/callback"
+     }
+   )
+   
+   if (location) {
+     // Redirect user to the third-party provider
+     window.location.href = location
+   }
+   ```
+
+2. **Handle Callback**:
+   ```typescript
+   // After user is redirected back to your application
+   const { success, authIdentity } = await authModuleService.validateCallback(
+     "google",
+     {
+       url,
+       headers,
+       query, // Contains code, state, etc. from the OAuth provider
+       protocol
+     }
+   )
+   
+   if (success) {
+     // Authentication successful
+   }
+   ```
+
+### Password Reset Flow
+
+```typescript
+const { success } = await authModuleService.updateProvider(
+  "emailpass",
+  {
+    entity_id: "user@example.com",
+    password: "newpassword"
+  }
+)
+```
+
+## Available Authentication Providers
+
+### Core Providers
+
+1. **Email/Password (`emailpass`)**
+   - Standard username/password authentication
+   - Supports registration, login, and password reset
+
+2. **OAuth Providers**
+   - **Google**: OAuth 2.0 authentication with Google
+   - **Facebook**: OAuth 2.0 authentication with Facebook
+   - Other OAuth providers can be integrated
+
+### Authentication Strategies
+
+1. **JWT Token**
+   - Default for API access
+   - Stateless authentication
+   - Token is included in Authorization header
+
+2. **Session Cookies**
+   - Used for web applications
+   - Stateful authentication
+   - Cookie is automatically included in requests
+
+3. **API Keys**
+   - Used for service-to-service communication
+   - Long-lived tokens with specific permissions
+
+## Authentication APIs and Endpoints
+
+### REST API Endpoints
+
+1. **Customer Authentication**
+   - POST `/auth/customer/emailpass` - Authenticate customer with email/password
+   ```bash
+   curl -X POST 'http://localhost:9000/auth/customer/emailpass' \
+   -H 'Content-Type: application/json' \
+   --data-raw '{
+       "email": "customer@gmail.com",
+       "password": "supersecret"
+   }'
+   ```
+   
+   - Response:
+   ```json
+   {
+     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+   }
+   ```
+
+2. **Admin Authentication**
+   - POST `/auth/admin/emailpass` - Authenticate admin with email/password
+
+3. **OAuth Authentication**
+   - GET/POST `/auth/{actor_type}/{provider}` - Initiate OAuth flow
+   - GET/POST `/auth/{actor_type}/{provider}/callback` - Handle OAuth callback
+
+4. **Session Management**
+   - POST `/auth/session` - Create session from JWT token
+   ```bash
+   curl -X POST 'http://localhost:9000/auth/session' \
+   -H 'Authorization: Bearer {jwt_token}'
+   ```
+
+### JS SDK Authentication Methods
+
+1. **Login**
+   ```typescript
+   // For email/password authentication
+   const result = await sdk.auth.login(
+     "customer", // actor type
+     "emailpass", // provider
+     {
+       email: "customer@gmail.com",
+       password: "supersecret"
+     }
+   )
+   
+   // For OAuth authentication
+   const result = await sdk.auth.login("customer", "google", {})
+   if (typeof result === "object" && result.location) {
+     // Redirect to Google
+     window.location.href = result.location
+   }
+   ```
+
+2. **OAuth Callback Handling**
+   ```typescript
+   const token = await sdk.auth.callback(
+     "customer", 
+     "google", 
+     // Query parameters from the callback URL
+     queryParams
+   )
+   ```
+
+3. **Logout**
+   ```typescript
+   await sdk.auth.logout()
+   ```
+
+## Client-Side Integration
+
+### Initializing JS SDK with Authentication
+
+1. **JWT Authentication (Default)**
+   ```typescript
+   import Medusa from "@medusajs/js-sdk"
+   
+   export const sdk = new Medusa({
+     baseUrl: "http://localhost:9000",
+     // JWT is the default authentication type
+   })
+   ```
+
+2. **Session Cookie Authentication**
+   ```typescript
+   import Medusa from "@medusajs/js-sdk"
+   
+   export const sdk = new Medusa({
+     baseUrl: "http://localhost:9000",
+     auth: {
+       type: "session",
+     }
+   })
+   ```
+
+3. **API Key Authentication**
+   ```typescript
+   import Medusa from "@medusajs/js-sdk"
+   
+   export const sdk = new Medusa({
+     baseUrl: "http://localhost:9000",
+     apiKey: "your-api-key",
+   })
+   ```
+
+### Custom Storage for JWT Tokens
+
+For mobile applications or environments where localStorage isn't available:
+
+```typescript
+import AsyncStorage from "@react-native-async-storage/async-storage"
+import Medusa from "@medusajs/js-sdk"
+
+export const sdk = new Medusa({
+  baseUrl: "http://localhost:9000",
+  auth: {
+    type: "jwt",
+    jwtTokenStorageMethod: "custom",
+    storage: AsyncStorage,
+  }
+})
+```
+
+### Managing Authentication State
+
+Implement authentication state management on the client:
+
+```typescript
+const [isAuthenticated, setIsAuthenticated] = useState(false)
+const [currentUser, setCurrentUser] = useState(null)
+
+// Check authentication status on app load
+useEffect(() => {
+  const checkAuthStatus = async () => {
+    try {
+      const { customer } = await sdk.store.customer.retrieve()
+      setCurrentUser(customer)
+      setIsAuthenticated(true)
+    } catch (error) {
+      // Not authenticated
+      setIsAuthenticated(false)
+    }
+  }
+  
+  checkAuthStatus()
+}, [])
+
+// Login function
+const login = async (email, password) => {
+  try {
+    await sdk.auth.login("customer", "emailpass", { email, password })
+    const { customer } = await sdk.store.customer.retrieve()
+    setCurrentUser(customer)
+    setIsAuthenticated(true)
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: error.message }
+  }
+}
+
+// Logout function
+const logout = async () => {
+  await sdk.auth.logout()
+  setCurrentUser(null)
+  setIsAuthenticated(false)
+}
+```
+
+## Best Practices for Authentication UX
+
+### Registration Flow
+
+1. **Streamlined Registration Form**
+   - Collect only essential information (email, password)
+   - Offer social login alternatives
+   - Clear validation messages for password requirements
+
+2. **Email Verification**
+   - Send verification email after registration
+   - Allow limited access before verification
+   - Display clear verification instructions
+
+### Login Experience
+
+1. **Multiple Login Options**
+   - Email/password login form
+   - Social login buttons (Google, Facebook, etc.)
+   - Remember Me functionality
+   
+2. **Error Handling**
+   - Clear error messages for authentication failures
+   - Account recovery options (forgot password)
+   - Rate limiting and security notifications
+
+3. **Persistent Sessions**
+   - Use session cookies for web applications
+   - Implement auto-refresh of JWT tokens
+   - Clear session indicators (logged in as...)
+
+### Third-Party Authentication
+
+1. **Seamless OAuth Flows**
+   - Streamlined authorization process
+   - Minimalist permission requests
+   - Clear return path to the application
+
+2. **Account Linking**
+   - Option to link multiple authentication methods
+   - Easy switching between authentication methods
+   - Graceful handling of duplicate emails
+
+### Mobile Considerations
+
+1. **Biometric Authentication**
+   - Support for Face ID / Touch ID where available
+   - Secure token storage using platform capabilities
+   - Fallback methods when biometric auth fails
+
+2. **Responsive Design**
+   - Forms optimized for mobile screens
+   - Touch-friendly input elements
+   - Minimized keyboard usage
+
+## Current Implementation Issues and Enhancement Requests
+
+Our current authentication implementation has the following issues that we'd like Cursor to address:
+
+1. **Authentication State Management**
+   - Current approach is fragmented and lacks consistent state management
+   - Need a centralized auth provider/context to manage application-wide state
+
+2. **Error Handling and User Feedback**
+   - Authentication errors are not consistently presented to users
+   - Need better error messaging and recovery flows
+
+3. **Social Login Integration**
+   - OAuth providers need cleaner integration with the main authentication flow
+   - Account linking between providers should be improved
+
+4. **UX Enhancements**
+   - Form validation needs to be more intuitive
+   - Login/registration process should require fewer clicks
+   - Password strength indicators and requirements should be clearer
+
+5. **Session Management**
+   - Token refresh mechanism needs improvement
+   - Session timeout notifications should be implemented
+   - Background token refresh should be handled gracefully
+
+6. **Authentication Persistence**
+   - "Remember Me" functionality needs to be implemented
+   - Session restoration on page reload needs improvement
+
+### Enhancement Priorities
+
+Please focus on the following UX enhancements in order of priority:
+
+1. Streamlined registration/login flow with fewer steps
+2. Improved error messaging and recovery options
+3. Consistent authentication state management
+4. Enhanced social login integration
+5. Robust session management
+6. Mobile-optimized authentication experience
+
+## Technical Implementation Reference
+
+For implementation details, please reference these parts of our codebase:
+
+- `/src/services/auth/` - Core authentication services
+- `/src/components/auth/` - Authentication UI components
+- `/src/api/auth/` - Authentication API endpoints
+- `/src/hooks/useAuth.js` - Authentication hook
+- `/src/contexts/AuthContext.js` - Authentication context
+
+## Conclusion
+
+This document provides a comprehensive guide to Medusa's authentication system and outlines the improvements needed for our current implementation. We look forward to Cursor's expertise in enhancing our auth features with a focus on providing the best possible user experience.
+
+apiClient.authErrorStream.listen((error) {
+  // Show error message
+  // Navigate to login screen if needed
+});

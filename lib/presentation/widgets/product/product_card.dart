@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:melamine_elsherif/domain/entities/product.dart';
+import 'package:melamine_elsherif/core/routes/routes.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -41,7 +42,13 @@ class ProductCard extends StatelessWidget {
     }
 
     return InkWell(
-      onTap: onTap,
+      onTap: onTap ?? () {
+        Navigator.pushNamed(
+          context,
+          Routes.productDetails,
+          arguments: product,
+        );
+      },
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,

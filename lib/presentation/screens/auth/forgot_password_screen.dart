@@ -32,7 +32,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       final email = _emailController.text.trim();
       
       // Call the repository method to request password reset
-      final result = await authViewModel.requestPasswordReset(email: email);
+      final result = await authViewModel.requestPasswordReset(email);
       
       if (mounted) {
         setState(() {

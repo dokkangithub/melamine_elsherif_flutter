@@ -1,0 +1,204 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:8277758283516235991",
+      "lastPropertyId": "11:1633331566896269425",
+      "name": "ProductBoxModel",
+      "properties": [
+        {
+          "id": "1:2157536011238288508",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8314389192260273613",
+          "name": "productId",
+          "type": 9
+        },
+        {
+          "id": "3:17210902421864521",
+          "name": "title",
+          "type": 9
+        },
+        {
+          "id": "4:6490103131545161520",
+          "name": "handle",
+          "type": 9
+        },
+        {
+          "id": "5:922205038779060241",
+          "name": "description",
+          "type": 9
+        },
+        {
+          "id": "6:6260952845064198109",
+          "name": "thumbnail",
+          "type": 9
+        },
+        {
+          "id": "7:566586112728947148",
+          "name": "isGiftCard",
+          "type": 1
+        },
+        {
+          "id": "8:6100377758065393456",
+          "name": "status",
+          "type": 9
+        },
+        {
+          "id": "9:2723786600222063086",
+          "name": "createdAt",
+          "type": 10
+        },
+        {
+          "id": "10:1790621962708732601",
+          "name": "updatedAt",
+          "type": 10
+        },
+        {
+          "id": "11:1633331566896269425",
+          "name": "isInWishlist",
+          "type": 1
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "2:4731287340340730454",
+      "lastPropertyId": "7:2423104388310997711",
+      "name": "ProductCategoryBoxModel",
+      "properties": [
+        {
+          "id": "1:4556918281398598521",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:8985163328971576081",
+          "name": "categoryId",
+          "type": 9
+        },
+        {
+          "id": "3:5807120665416761174",
+          "name": "name",
+          "type": 9
+        },
+        {
+          "id": "4:2807882031862501086",
+          "name": "handle",
+          "type": 9
+        },
+        {
+          "id": "5:7795922007261728612",
+          "name": "description",
+          "type": 9
+        },
+        {
+          "id": "6:5990258894319474299",
+          "name": "createdAt",
+          "type": 10
+        },
+        {
+          "id": "7:2423104388310997711",
+          "name": "updatedAt",
+          "type": 10
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "3:8391483715246859683",
+      "lastPropertyId": "7:3299614584404711136",
+      "name": "ProductCollectionBoxModel",
+      "properties": [
+        {
+          "id": "1:5198965851397501013",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3552565822677413279",
+          "name": "collectionId",
+          "type": 9
+        },
+        {
+          "id": "3:1840499447851796439",
+          "name": "title",
+          "type": 9
+        },
+        {
+          "id": "4:5956810814699203342",
+          "name": "handle",
+          "type": 9
+        },
+        {
+          "id": "5:5820818854327270403",
+          "name": "description",
+          "type": 9
+        },
+        {
+          "id": "6:1181166708114549023",
+          "name": "createdAt",
+          "type": 10
+        },
+        {
+          "id": "7:3299614584404711136",
+          "name": "updatedAt",
+          "type": 10
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "4:35185808398094906",
+      "lastPropertyId": "5:4724372099765994408",
+      "name": "ProductTagBoxModel",
+      "properties": [
+        {
+          "id": "1:6625996733000682868",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:7295548042318552730",
+          "name": "tagId",
+          "type": 9
+        },
+        {
+          "id": "3:7053254660530876019",
+          "name": "value",
+          "type": 9
+        },
+        {
+          "id": "4:6367224419518715380",
+          "name": "createdAt",
+          "type": 10
+        },
+        {
+          "id": "5:4724372099765994408",
+          "name": "updatedAt",
+          "type": 10
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "4:35185808398094906",
+  "lastIndexId": "0:0",
+  "lastRelationId": "0:0",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [],
+  "retiredRelationUids": [],
+  "version": 1
+}

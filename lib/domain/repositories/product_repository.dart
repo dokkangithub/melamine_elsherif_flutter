@@ -63,4 +63,10 @@ abstract class ProductRepository {
 
   /// Searches for products
   Future<Either<Failure, List<Product>>> searchProducts(String query);
+
+  /// Get bestseller products
+  Future<Either<Failure, List<Product>>> getBestsellers();
+
+  /// Get today's best deals
+  Future<Either<Failure, List<Product>>> getTodaysBestDeals();
 } 

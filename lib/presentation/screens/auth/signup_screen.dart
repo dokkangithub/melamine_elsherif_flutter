@@ -50,9 +50,12 @@ class _SignupScreenState extends State<SignupScreen> {
       
       // Register with email and password
       final success = await authViewModel.registerUser(
-        name: _nameController.text.trim(),
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
+        firstName: _nameController.text.trim().split(' ').first,
+        lastName: _nameController.text.trim().split(' ').length > 1 
+            ? _nameController.text.trim().split(' ').last 
+            : '',
       );
       
       if (mounted) {

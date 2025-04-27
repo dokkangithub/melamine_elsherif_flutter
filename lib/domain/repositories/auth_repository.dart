@@ -48,8 +48,10 @@ abstract class AuthRepository {
 
   /// Updates the user's profile information
   Future<Either<Failure, User>> updateProfile({
+    String? email,
     String? firstName,
     String? lastName,
     String? phone,
+    String? password,
   });
 } 

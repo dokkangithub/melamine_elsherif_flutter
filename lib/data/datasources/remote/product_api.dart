@@ -1,12 +1,12 @@
-import 'package:melamine_elsherif/core/network/api_client.dart';
+import 'package:dio/dio.dart';
 import 'package:melamine_elsherif/core/network/api_constants.dart';
 import 'package:melamine_elsherif/core/error/exceptions.dart';
 
 /// Remote data source for product-related API calls
 class ProductApi {
-  final ApiClient _apiClient;
+  final Dio _dio;
 
-  ProductApi(this._apiClient);
+  ProductApi(this._dio);
 
   /// Get a list of products from the API
   /// [limit] - Maximum number of products to return
@@ -45,12 +45,12 @@ class ProductApi {
         queryParams['q'] = search;
       }
 
-      final response = await _apiClient.get(
+      final response = await _dio.get(
         ApiConstants.products,
         queryParameters: queryParams,
       );
 
-      return response as Map<String, dynamic>;
+      return response.data as Map<String, dynamic>;
     } catch (e) {
       throw ApiException(message: 'Failed to get products');
     }
@@ -60,8 +60,8 @@ class ProductApi {
   /// [id] - The product ID
   Future<Map<String, dynamic>> getProductById(String id) async {
     try {
-      final response = await _apiClient.get('${ApiConstants.products}/$id');
-      return response as Map<String, dynamic>;
+      final response = await _dio.get('${ApiConstants.products}/$id');
+      return response.data as Map<String, dynamic>;
     } catch (e) {
       throw ApiException(message: 'Failed to get product details');
     }
@@ -71,12 +71,12 @@ class ProductApi {
   /// [handle] - The product handle (slug)
   Future<Map<String, dynamic>> getProductByHandle(String handle) async {
     try {
-      final response = await _apiClient.get(
+      final response = await _dio.get(
         ApiConstants.products,
         queryParameters: {'handle': handle},
       );
 
-      return response as Map<String, dynamic>;
+      return response.data as Map<String, dynamic>;
     } catch (e) {
       throw ApiException(message: 'Failed to get product by handle');
     }
@@ -85,8 +85,8 @@ class ProductApi {
   /// Get a list of product categories from the API
   Future<Map<String, dynamic>> getCategories() async {
     try {
-      final response = await _apiClient.get(ApiConstants.productCategories);
-      return response as Map<String, dynamic>;
+      final response = await _dio.get(ApiConstants.productCategories);
+      return response.data as Map<String, dynamic>;
     } catch (e) {
       throw ApiException(message: 'Failed to get product categories');
     }
@@ -96,8 +96,8 @@ class ProductApi {
   /// [id] - The category ID
   Future<Map<String, dynamic>> getCategoryById(String id) async {
     try {
-      final response = await _apiClient.get('${ApiConstants.productCategories}/$id');
-      return response as Map<String, dynamic>;
+      final response = await _dio.get('${ApiConstants.productCategories}/$id');
+      return response.data as Map<String, dynamic>;
     } catch (e) {
       throw ApiException(message: 'Failed to get category details');
     }
@@ -106,8 +106,8 @@ class ProductApi {
   /// Get a list of product collections from the API
   Future<Map<String, dynamic>> getCollections() async {
     try {
-      final response = await _apiClient.get(ApiConstants.collections);
-      return response as Map<String, dynamic>;
+      final response = await _dio.get(ApiConstants.collections);
+      return response.data as Map<String, dynamic>;
     } catch (e) {
       throw ApiException(message: 'Failed to get product collections');
     }
@@ -117,8 +117,8 @@ class ProductApi {
   /// [id] - The collection ID
   Future<Map<String, dynamic>> getCollectionById(String id) async {
     try {
-      final response = await _apiClient.get('${ApiConstants.collections}/$id');
-      return response as Map<String, dynamic>;
+      final response = await _dio.get('${ApiConstants.collections}/$id');
+      return response.data as Map<String, dynamic>;
     } catch (e) {
       throw ApiException(message: 'Failed to get collection details');
     }
@@ -127,10 +127,65 @@ class ProductApi {
   /// Get a list of product tags from the API
   Future<Map<String, dynamic>> getTags() async {
     try {
-      final response = await _apiClient.get(ApiConstants.productTags);
-      return response as Map<String, dynamic>;
+      final response = await _dio.get(ApiConstants.productTags);
+      return response.data as Map<String, dynamic>;
     } catch (e) {
       throw ApiException(message: 'Failed to get product tags');
+    }
+  }
+
+  /// Get bestseller products from the API
+  Future<Map<String, dynamic>> getBestsellers({int limit = 10}) async {
+    try {
+      final response = await _dio.get(
+        ApiConstants.products,
+        queryParameters: {
+          'limit': limit.toString(),
+          'sort_by': 'sales',
+          'sort_desc': 'true',
+        },
+      );
+
+      return response.data as Map<String, dynamic>;
+    } catch (e) {
+      throw ApiException(message: 'Failed to get bestseller products');
+    }
+  }
+
+  /// Get today's best deals from the API
+  Future<Map<String, dynamic>> getTodaysBestDeals({int limit = 10}) async {
+    try {
+      final response = await _dio.get(
+        ApiConstants.products,
+        queryParameters: {
+          'limit': limit.toString(),
+          'discount': 'true',
+          'sort_by': 'discount_percentage',
+          'sort_desc': 'true',
+        },
+      );
+
+      return response.data as Map<String, dynamic>;
+    } catch (e) {
+      throw ApiException(message: 'Failed to get today\'s best deals');
+    }
+  }
+
+  /// Get new arrival products from the API
+  Future<Map<String, dynamic>> getNewArrivals({int limit = 10}) async {
+    try {
+      final response = await _dio.get(
+        ApiConstants.products,
+        queryParameters: {
+          'limit': limit.toString(),
+          'sort_by': 'created_at',
+          'sort_desc': 'true',
+        },
+      );
+
+      return response.data as Map<String, dynamic>;
+    } catch (e) {
+      throw ApiException(message: 'Failed to get new arrivals');
     }
   }
 } 

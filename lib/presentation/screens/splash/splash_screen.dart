@@ -10,126 +10,111 @@ import 'package:melamine_elsherif/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:provider/provider.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  const SplashScreen({Key? key}) : super(key: key);
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
-  
-  // Get app preferences to check first launch status
-  final AppPreferences _appPreferences = serviceLocator<AppPreferences>();
+class _SplashScreenState extends State<SplashScreen> {
+  bool _isInitialized = false;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    
-    // Initialize animations
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    );
-    
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.0, 0.7, curve: Curves.easeIn),
-      ),
-    );
-    
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.0, 0.7, curve: Curves.easeOutBack),
-      ),
-    );
-    
-    // Start animation
-    _animationController.forward();
-    
-    // Initialize AuthViewModel and navigate to next screen after delay
-    _initAuthAndNavigate();
+    _checkAuthStatus();
   }
 
-  Future<void> _initAuthAndNavigate() async {
-    // Initialize authentication
+  Future<void> _checkAuthStatus() async {
+    if (!mounted) return;
+
     final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
-    await authViewModel.init();
+    final appPreferences = serviceLocator<AppPreferences>();
     
-    // Navigate to next screen after delay
-    Timer(const Duration(seconds: 2), () {
-      if (mounted) {
-        // Check if it's the first launch
-        final isFirstLaunch = _appPreferences.isFirstLaunch();
-        
-        if (isFirstLaunch) {
-          // Navigate to onboarding for first launch
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const OnboardingScreen(),
-            ),
-          );
-        } else if (authViewModel.isAuthenticated) {
-          // Navigate to home screen if already logged in
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const HomeScreen(),
-            ),
-          );
-        } else {
-          // Navigate to login screen
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const LoginScreen(),
-            ),
-          );
-        }
-      }
-    });
-  }
+    try {
+      // Initialize auth state
+      await authViewModel.init();
+      
+      if (!mounted) return;
 
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
+      // Check if this is first launch
+      final bool isFirstLaunch = await appPreferences.isFirstLaunch();
+      
+      if (isFirstLaunch) {
+        // Navigate to onboarding
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+        );
+      } else if (authViewModel.isAuthenticated) {
+        // User is authenticated, go to home screen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      } else {
+        // User is not authenticated, go to login screen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      
+      setState(() {
+        _errorMessage = 'Error initializing app: ${e.toString()}';
+      });
+      
+      // Wait a bit to show the error message
+      await Future.delayed(const Duration(seconds: 2));
+      
+      if (!mounted) return;
+      
+      // Navigate to login screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isInitialized = true;
+        });
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
       body: Center(
-        child: AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            return FadeTransition(
-              opacity: _fadeAnimation,
-              child: ScaleTransition(
-                scale: _scaleAnimation,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      AppAssets.logoWithText,
-                      width: 200,
-                      height: 200,
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      'Your Ultimate Shopping Destination',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    const SizedBox(height: 40),
-                    const CircularProgressIndicator(),
-                  ],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Your app logo
+            Image.asset(
+              AppAssets.logoWithText,
+              width: 200,
+              height: 200,
+            ),
+            const SizedBox(height: 24),
+            if (!_isInitialized)
+              const CircularProgressIndicator()
+            else if (_errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Text(
+                  _errorMessage!,
+                  style: const TextStyle(
+                    color: Colors.red,
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
-            );
-          },
+          ],
         ),
       ),
     );

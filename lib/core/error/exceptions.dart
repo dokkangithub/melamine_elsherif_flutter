@@ -40,4 +40,20 @@ class ApiException implements Exception {
   
   /// Creates a [ApiException] instance
   ApiException({required this.message, this.statusCode});
+}
+
+/// Exception thrown when there's an error with cart operations
+class CartException implements Exception {
+  final String message;
+  final String? code;
+  final int? statusCode;
+
+  CartException({
+    required this.message,
+    this.code,
+    this.statusCode,
+  });
+
+  @override
+  String toString() => 'CartException: $message${code != null ? ' (Code: $code)' : ''}';
 } 

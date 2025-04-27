@@ -8,10 +8,6 @@ import 'package:melamine_elsherif/presentation/screens/auth/forgot_password_scre
 import 'package:melamine_elsherif/presentation/screens/home/home_screen.dart';
 import 'package:melamine_elsherif/presentation/viewmodels/auth_viewmodel.dart';
 import 'package:melamine_elsherif/presentation/viewmodels/product/product_view_model.dart';
-import 'package:melamine_elsherif/presentation/widgets/custom_button.dart';
-import 'package:melamine_elsherif/presentation/widgets/custom_text_field.dart';
-import 'package:melamine_elsherif/presentation/widgets/social_login_button.dart';
-import 'package:melamine_elsherif/presentation/widgets/password_field.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -65,24 +61,61 @@ class _LoginScreenState extends State<LoginScreen> {
         final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
         
         // Login with email and password
-        final success = await authViewModel.loginWithEmailAndPassword(
-          _emailController.text.trim(),
-          _passwordController.text.trim(),
+        final success = await authViewModel.loginWithEmailPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
         );
         
-        if (mounted) {
-          if (success) {
+        if (!mounted) return;
+        
+        if (success) {
+          try {
             // Get the ProductViewModel to load initial data
             final productViewModel = Provider.of<ProductViewModel>(context, listen: false);
             
-            // Load initial data for home screen
-            await Future.wait([
-              productViewModel.getProducts(),
-              productViewModel.getFeaturedProducts(),
-              productViewModel.getNewArrivals(),
-              productViewModel.getCategories(),
-              productViewModel.getCollections(),
-            ]);
+            // Load initial data for home screen with error handling for each call
+            final futures = <Future>[];
+            
+            // Add each data loading operation with its own error handling
+            futures.add(
+              productViewModel.getProducts().catchError((e) {
+                debugPrint('Error loading products: $e');
+                return null;
+              })
+            );
+            
+            futures.add(
+              productViewModel.getFeaturedProducts().catchError((e) {
+                debugPrint('Error loading featured products: $e');
+                return null;
+              })
+            );
+            
+            futures.add(
+              productViewModel.getNewArrivals().catchError((e) {
+                debugPrint('Error loading new arrivals: $e');
+                return null;
+              })
+            );
+            
+            futures.add(
+              productViewModel.getCategories().catchError((e) {
+                debugPrint('Error loading categories: $e');
+                return null;
+              })
+            );
+            
+            futures.add(
+              productViewModel.getCollections().catchError((e) {
+                debugPrint('Error loading collections: $e');
+                return null;
+              })
+            );
+            
+            // Wait for all futures to complete, even if some fail
+            await Future.wait(futures);
+            
+            if (!mounted) return;
             
             // Navigate to home screen and remove all previous routes
             Navigator.pushAndRemoveUntil(
@@ -90,26 +123,91 @@ class _LoginScreenState extends State<LoginScreen> {
               MaterialPageRoute(builder: (context) => const HomeScreen()),
               (Route<dynamic> route) => false,
             );
-          } else {
-            // Show error message
+          } catch (e) {
+            if (!mounted) return;
+            
+            // Show error loading initial data
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(authViewModel.error ?? 'Login failed'),
-                backgroundColor: Colors.red,
+                content: Text(
+                  'Some data could not be loaded. You can still browse the app.',
+                  style: const TextStyle(color: Colors.white),
+                ),
+                backgroundColor: Colors.orange,
+                behavior: SnackBarBehavior.floating,
+                margin: const EdgeInsets.all(16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                duration: const Duration(seconds: 3),
+                action: SnackBarAction(
+                  label: 'Dismiss',
+                  textColor: Colors.white,
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  },
+                ),
               ),
             );
+            
+            // Still navigate to home screen even if data loading fails
+            Navigator.pushAndRemoveUntil(
+              context, 
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+              (Route<dynamic> route) => false,
+            );
           }
-        }
-      } catch (e) {
-        // Catch any unexpected errors and display them
-        if (mounted) {
+        } else {
+          // Show error in custom snackbar
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Login error: ${e.toString()}'),
+              content: Text(
+                authViewModel.error ?? 'Login failed',
+                style: const TextStyle(color: Colors.white),
+              ),
               backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              duration: const Duration(seconds: 3),
+              action: SnackBarAction(
+                label: 'Dismiss',
+                textColor: Colors.white,
+                onPressed: () {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                },
+              ),
             ),
           );
         }
+      } catch (e) {
+        if (!mounted) return;
+        
+        // Catch any unexpected errors and display them
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Login error: ${e.toString()}',
+              style: const TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            duration: const Duration(seconds: 3),
+            action: SnackBarAction(
+              label: 'Dismiss',
+              textColor: Colors.white,
+              onPressed: () {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              },
+            ),
+          ),
+        );
       }
     }
   }
@@ -330,33 +428,49 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildLoginButton() {
     return Consumer<AuthViewModel>(
       builder: (context, authViewModel, _) {
-        return ElevatedButton(
-          onPressed: authViewModel.isLoading ? null : _login,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFBD5D5D),
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            elevation: 0,
-          ),
-          child: authViewModel.isLoading
-              ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 3,
+        return Column(
+          children: [
+            if (authViewModel.error != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Text(
+                  authViewModel.error!,
+                  style: const TextStyle(
+                    color: Colors.red,
+                    fontSize: 14,
                   ),
-                )
-              : const Text(
-                  'Sign In',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  textAlign: TextAlign.center,
                 ),
+              ),
+            ElevatedButton(
+              onPressed: authViewModel.isLoading ? null : _login,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFBD5D5D),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                elevation: 0,
+              ),
+              child: authViewModel.isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 3,
+                      ),
+                    )
+                  : const Text(
+                      'Sign In',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+            ),
+          ],
         );
       }
     );

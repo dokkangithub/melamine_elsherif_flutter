@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:melamine_elsherif/injection_container.dart' as di;
 import 'package:provider/provider.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:melamine_elsherif/core/di/service_locator.dart' as di;
-import 'package:melamine_elsherif/presentation/screens/home/home_screen.dart';
 import 'package:melamine_elsherif/presentation/screens/splash/splash_screen.dart';
 import 'package:melamine_elsherif/presentation/viewmodels/product/product_view_model.dart';
 import 'package:melamine_elsherif/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:melamine_elsherif/di/service_locator.dart';
+import 'package:melamine_elsherif/core/routes/routes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Initialize dependency injection
-  await di.init();
+  await initServiceLocator();
   
   runApp(const MyApp());
 }
@@ -34,6 +34,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Melamine Elsherif',
         debugShowCheckedModeBanner: false,
+        onGenerateRoute: Routes.generateRoute,
         theme: ThemeData(
           primaryColor: const Color(0xFFBD5D5D),
           colorScheme: ColorScheme.fromSeed(

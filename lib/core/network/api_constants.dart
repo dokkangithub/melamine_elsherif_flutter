@@ -1,7 +1,9 @@
+import 'package:melamine_elsherif/core/config/app_config.dart';
+
 /// Constants for the API
 class ApiConstants {
   // Base URL for the Medusa Store API
-  static const String baseUrl = 'http://192.168.1.38:9000';
+  static String get baseUrl => AppConfig.baseUrl;
 
   // Store API prefix
   static const String storePrefix = '/store';

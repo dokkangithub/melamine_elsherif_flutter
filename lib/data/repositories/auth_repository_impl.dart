@@ -194,8 +194,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, bool>> isLoggedIn() async {
     try {
-      // Implement based on your token storage strategy
-      final token = await apiClient.secureStorage.read(key: 'auth_token');
+      final token = await apiClient.getAuthToken();
       return Right(token != null);
     } catch (e) {
       talker.error('❌ Error checking login state', e);
@@ -272,20 +271,49 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, User>> updateProfile({
+    String? email,
     String? firstName,
     String? lastName,
     String? phone,
+    String? password,
   }) async {
-    // Implement according to Medusa API
-    // This would typically call apiClient.updateProfile
-    return Right(User(
-      id: '1',
-      email: 'user@example.com',
-      firstName: firstName ?? 'John',
-      lastName: lastName ?? 'Doe',
-      phone: phone,
-      isActive: true,
-      isVerified: true,
-    ));
+    if (await networkInfo.isConnected) {
+      try {
+        talker.debug('👤 Updating profile');
+        
+        final response = await apiClient.updateProfile(
+          email: email,
+          firstName: firstName,
+          lastName: lastName,
+          phone: phone,
+          password: password,
+        );
+        
+        final user = User(
+          id: response['customer']['id'] ?? '1',
+          email: response['customer']['email'] ?? email ?? 'user@example.com',
+          firstName: response['customer']['first_name'] ?? firstName ?? 'User',
+          lastName: response['customer']['last_name'] ?? lastName ?? '',
+          phone: response['customer']['phone'] ?? phone,
+          isActive: response['customer']['has_account'] ?? true,
+          isVerified: true,
+        );
+        
+        talker.info('👤 Profile updated successfully: ${user.email}');
+        return Right(user);
+      } on Exception catch (e) {
+        talker.error('👤 Failed to update profile', e);
+        
+        if (e is ApiException) {
+          return Left(AuthFailure(message: e.message));
+        } else if (e is ServerException) {
+          return Left(ServerFailure(message: e.message));
+        }
+        return Left(ServerFailure(message: e.toString()));
+      }
+    } else {
+      talker.warning('⚠️ No internet connection');
+      return Left(NetworkFailure(message: 'No internet connection'));
+    }
   }
 } 

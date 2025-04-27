@@ -466,16 +466,134 @@ class ProductRepositoryImpl implements ProductRepository {
   }
 
   @override
+  Future<Either<Failure, List<Product>>> getBestsellers() async {
+    if (await _networkInfo.isConnected) {
+      try {
+        final response = await _productApi.getBestsellers();
+        
+        final List<ProductModel> products = [];
+        if (response['products'] != null) {
+          for (final product in response['products']) {
+            products.add(ProductModel.fromJson(product));
+          }
+        }
+        
+        // Cache the products
+        _localDataSource.cacheProducts(products);
+        
+        return Right(products);
+      } catch (e) {
+        // If there is a network error, try to get from local cache
+        try {
+          final localProducts = await _localDataSource.getProducts();
+          return Right(localProducts);
+        } catch (cacheError) {
+          if (e is ApiException) {
+            return Left(ServerFailure(message: e.message));
+          } else if (e is ServerException) {
+            return Left(ServerFailure(message: e.message));
+          } else if (e is NetworkException) {
+            return Left(NetworkFailure(message: e.message));
+          }
+          return Left(ServerFailure(message: e.toString()));
+        }
+      }
+    } else {
+      // If offline, try to get from local cache
+      try {
+        final localProducts = await _localDataSource.getProducts();
+        return Right(localProducts);
+      } catch (e) {
+        return Left(CacheFailure(message: 'Unable to get bestsellers from cache'));
+      }
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Product>>> getTodaysBestDeals() async {
+    if (await _networkInfo.isConnected) {
+      try {
+        final response = await _productApi.getTodaysBestDeals();
+        
+        final List<ProductModel> products = [];
+        if (response['products'] != null) {
+          for (final product in response['products']) {
+            products.add(ProductModel.fromJson(product));
+          }
+        }
+        
+        // Cache the products
+        _localDataSource.cacheProducts(products);
+        
+        return Right(products);
+      } catch (e) {
+        // If there is a network error, try to get from local cache
+        try {
+          final localProducts = await _localDataSource.getProducts();
+          return Right(localProducts);
+        } catch (cacheError) {
+          if (e is ApiException) {
+            return Left(ServerFailure(message: e.message));
+          } else if (e is ServerException) {
+            return Left(ServerFailure(message: e.message));
+          } else if (e is NetworkException) {
+            return Left(NetworkFailure(message: e.message));
+          }
+          return Left(ServerFailure(message: e.toString()));
+        }
+      }
+    } else {
+      // If offline, try to get from local cache
+      try {
+        final localProducts = await _localDataSource.getProducts();
+        return Right(localProducts);
+      } catch (e) {
+        return Left(CacheFailure(message: 'Unable to get today\'s best deals from cache'));
+      }
+    }
+  }
+
+  @override
   Future<Either<Failure, List<Product>>> getNewArrivals() async {
-    try {
-      // Get the most recently added products
-      return getProducts(
-        limit: 8,
-        sortBy: 'created_at',
-        sortDesc: true,
-      );
-    } catch (e) {
-      return Left(ServerFailure(message: 'Failed to get new arrivals'));
+    if (await _networkInfo.isConnected) {
+      try {
+        final response = await _productApi.getNewArrivals();
+        
+        final List<ProductModel> products = [];
+        if (response['products'] != null) {
+          for (final product in response['products']) {
+            products.add(ProductModel.fromJson(product));
+          }
+        }
+        
+        // Cache the products
+        _localDataSource.cacheProducts(products);
+        
+        return Right(products);
+      } catch (e) {
+        // If there is a network error, try to get from local cache
+        try {
+          final localProducts = await _localDataSource.getProducts();
+          return Right(localProducts);
+        } catch (cacheError) {
+          if (e is ApiException) {
+            return Left(ServerFailure(message: e.message));
+          } else if (e is ServerException) {
+            return Left(ServerFailure(message: e.message));
+          } else if (e is NetworkException) {
+            return Left(NetworkFailure(message: e.message));
+          }
+          return Left(ServerFailure(message: e.toString()));
+        }
+      }
+    } else {
+      // If offline, try to get from local cache
+      try {
+        final localProducts = await _localDataSource.getProducts();
+        return Right(localProducts);
+      } catch (e) {
+        return Left(CacheFailure(message: 'Unable to get new arrivals from cache'));
+      }
     }
   }
 

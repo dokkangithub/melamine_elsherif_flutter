@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:melamine_elsherif/data/datasources/local/app_preferences.dart';
+import 'package:melamine_elsherif/di/service_locator.dart';
 import 'package:provider/provider.dart';
 import 'package:melamine_elsherif/domain/entities/product.dart';
 import 'package:melamine_elsherif/domain/repositories/product_repository.dart';
-import 'package:melamine_elsherif/data/repositories/product_repository_impl.dart';
 import 'package:melamine_elsherif/presentation/viewmodels/product/product_view_model.dart';
 import 'package:melamine_elsherif/presentation/widgets/product/product_card.dart';
-import 'package:melamine_elsherif/core/di/service_locator.dart';
+
+import '../../../injection_container.dart';
+
 
 class ProductListScreen extends StatefulWidget {
   final String? title;
@@ -37,9 +40,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
   final int _limit = 12;
   bool _hasMoreProducts = true;
 
+  late AppPreferences _appPreferences;
+
   @override
   void initState() {
     super.initState();
+    _appPreferences = serviceLocator<AppPreferences>();
     
     // Initialize view model with repository
     final repository = widget.productRepository ?? sl<ProductRepository>();

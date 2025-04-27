@@ -2,15 +2,20 @@ import 'package:get_it/get_it.dart';
 import 'package:dio/dio.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:melamine_elsherif/core/network/api_client.dart' as core_api;
 import 'package:melamine_elsherif/data/api/api_client.dart' as data_api;
 import 'package:melamine_elsherif/core/network/network_info.dart';
-import 'package:melamine_elsherif/core/services/secure_storage_service.dart';
 import 'package:melamine_elsherif/data/datasources/remote/product_api.dart';
 import 'package:melamine_elsherif/data/datasources/local/product_local_datasource.dart';
 import 'package:melamine_elsherif/data/datasources/remote/store_api.dart';
 import 'package:melamine_elsherif/data/datasources/remote/cart_api.dart';
 import 'package:melamine_elsherif/data/repositories/product_repository_impl.dart';
+import 'package:melamine_elsherif/data/repositories/auth_repository_impl.dart';
+import 'package:melamine_elsherif/data/repositories/cart_repository_impl.dart';
+import 'package:melamine_elsherif/data/repositories/wishlist_repository_impl.dart';
+import 'package:objectbox/objectbox.dart';
+import 'package:melamine_elsherif/objectbox.g.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 import 'package:melamine_elsherif/domain/repositories/product_repository.dart';
 import 'package:melamine_elsherif/domain/repositories/auth_repository.dart';
 import 'package:melamine_elsherif/domain/repositories/cart_repository.dart';
@@ -38,16 +43,17 @@ import 'package:melamine_elsherif/domain/usecases/wishlist/add_to_wishlist.dart'
 import 'package:melamine_elsherif/domain/usecases/wishlist/get_wishlist.dart';
 import 'package:melamine_elsherif/domain/usecases/wishlist/remove_from_wishlist.dart';
 import 'package:melamine_elsherif/presentation/viewmodels/home_viewmodel.dart';
-import 'package:melamine_elsherif/presentation/viewmodels/product_viewmodel.dart';
+import 'package:melamine_elsherif/presentation/viewmodels/product/product_view_model.dart';
 import 'package:melamine_elsherif/presentation/viewmodels/cart/cart_view_model.dart';
-import 'package:melamine_elsherif/data/repositories/auth_repository_impl.dart';
-import 'package:melamine_elsherif/data/repositories/cart_repository_impl.dart';
-import 'package:melamine_elsherif/data/repositories/wishlist_repository_impl.dart';
-import 'package:melamine_elsherif/objectbox.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:talker_flutter/talker_flutter.dart';
-
-import '../presentation/viewmodels/product/wishlist_view_model.dart';
+import 'package:melamine_elsherif/presentation/viewmodels/product/wishlist_view_model.dart';
+import 'package:melamine_elsherif/domain/usecases/auth/login.dart';
+import 'package:melamine_elsherif/domain/usecases/auth/register.dart';
+import 'package:melamine_elsherif/domain/usecases/auth/logout.dart';
+import 'package:melamine_elsherif/domain/usecases/auth/get_current_user.dart';
+import 'package:melamine_elsherif/domain/usecases/auth/request_password_reset.dart';
+import 'package:melamine_elsherif/domain/usecases/auth/update_profile.dart';
+import 'package:melamine_elsherif/presentation/viewmodels/auth_viewmodel.dart';
+import 'package:melamine_elsherif/data/datasources/local/app_preferences.dart';
 
 /// The service locator instance
 final GetIt serviceLocator = GetIt.instance;
@@ -73,16 +79,11 @@ Future<void> initServiceLocator() async {
     () => const FlutterSecureStorage(),
   );
   
-  // Register Dio
+  // Register Dio instances
   serviceLocator.registerLazySingleton(() => Dio());
   
-  // Register core ApiClient
-  serviceLocator.registerLazySingleton<core_api.ApiClient>(
-    () => core_api.ApiClient(serviceLocator<Dio>()),
-  );
-  
   // Register the data ApiClient for auth
-  serviceLocator.registerLazySingleton<data_api.ApiClient>(() => data_api.ApiClient(
+  serviceLocator.registerLazySingleton(() => data_api.ApiClient(
     dio: serviceLocator<Dio>(),
     talker: serviceLocator<Talker>(),
     secureStorage: serviceLocator<FlutterSecureStorage>(),
@@ -96,22 +97,31 @@ Future<void> initServiceLocator() async {
   final sharedPreferences = await SharedPreferences.getInstance();
   serviceLocator.registerSingleton<SharedPreferences>(sharedPreferences);
 
+  // Register AppPreferences
+  serviceLocator.registerLazySingleton(() => AppPreferences(serviceLocator<SharedPreferences>()));
+
   // Data sources
   serviceLocator.registerLazySingleton<ProductLocalDataSource>(
-    () => ProductLocalDataSourceImpl(serviceLocator(), serviceLocator()),
+    () => ProductLocalDataSourceImpl(
+      serviceLocator<Store>(),
+      serviceLocator<SharedPreferences>(),
+    ),
   );
   
-  // Update API client registrations to match their constructors
+  // Register API clients
   serviceLocator.registerLazySingleton<ProductApi>(
-    () => ProductApi(serviceLocator<core_api.ApiClient>()),
+    () => ProductApi(serviceLocator<Dio>()),
   );
   
   serviceLocator.registerLazySingleton<StoreApi>(
-    () => StoreApi(serviceLocator<Dio>(), 'https://api.store.com/'),
+    () => StoreApi(
+      serviceLocator<Dio>(),
+      'http://192.168.1.38:9000', // Using the same base URL as in ApiClient
+    ),
   );
 
   serviceLocator.registerLazySingleton<CartApi>(
-    () => CartApi(serviceLocator<core_api.ApiClient>()),
+    () => CartApi(serviceLocator<Dio>()),
   );
 
   // Repositories
@@ -144,44 +154,35 @@ Future<void> initServiceLocator() async {
     ),
   );
   
+  // Auth Use Cases
+  serviceLocator.registerLazySingleton(() => Login(serviceLocator<AuthRepository>()));
+  serviceLocator.registerLazySingleton(() => Register(serviceLocator<AuthRepository>()));
+  serviceLocator.registerLazySingleton(() => Logout(serviceLocator<AuthRepository>()));
+  serviceLocator.registerLazySingleton(() => GetCurrentUser(serviceLocator<AuthRepository>()));
+  serviceLocator.registerLazySingleton(() => RequestPasswordReset(serviceLocator<AuthRepository>()));
+  serviceLocator.registerLazySingleton(() => UpdateProfile(serviceLocator<AuthRepository>()));
+  
   // Product Use Cases
   serviceLocator.registerLazySingleton(() => GetProducts(serviceLocator<ProductRepository>()));
-  
   serviceLocator.registerLazySingleton(() => GetProductById(serviceLocator<ProductRepository>()));
-  
   serviceLocator.registerLazySingleton(() => GetProductByHandle(serviceLocator<ProductRepository>()));
-  
   serviceLocator.registerLazySingleton(() => SearchProducts(serviceLocator<ProductRepository>()));
-  
   serviceLocator.registerLazySingleton(() => GetCategories(serviceLocator<ProductRepository>()));
-  
   serviceLocator.registerLazySingleton(() => GetCollections(serviceLocator<ProductRepository>()));
   
   // Cart Use Cases
   serviceLocator.registerLazySingleton(() => CreateCart(serviceLocator<CartRepository>()));
-  
   serviceLocator.registerLazySingleton(() => GetCart(serviceLocator<CartRepository>()));
-  
   serviceLocator.registerLazySingleton(() => UpdateCart(serviceLocator<CartRepository>()));
-
   serviceLocator.registerLazySingleton(() => AddToCart(serviceLocator<CartRepository>()));
-  
   serviceLocator.registerLazySingleton(() => RemoveFromCart(serviceLocator<CartRepository>()));
-  
   serviceLocator.registerLazySingleton(() => AddLineItem(serviceLocator<CartRepository>()));
-  
   serviceLocator.registerLazySingleton(() => UpdateLineItem(serviceLocator<CartRepository>()));
-  
   serviceLocator.registerLazySingleton(() => RemoveLineItem(serviceLocator<CartRepository>()));
-  
   serviceLocator.registerLazySingleton(() => GetShippingOptions(serviceLocator<CartRepository>()));
-  
   serviceLocator.registerLazySingleton(() => AddShippingMethod(serviceLocator<CartRepository>()));
-  
   serviceLocator.registerLazySingleton(() => CreatePaymentSessions(serviceLocator<CartRepository>()));
-  
   serviceLocator.registerLazySingleton(() => SetPaymentSession(serviceLocator<CartRepository>()));
-  
   serviceLocator.registerLazySingleton(() => CompleteCart(serviceLocator<CartRepository>()));
 
   // Wishlist Use Cases
@@ -196,8 +197,7 @@ Future<void> initServiceLocator() async {
 
   serviceLocator.registerFactory<ProductViewModel>(
     () => ProductViewModel(
-      serviceLocator<ProductRepository>(), 
-      serviceLocator<WishlistRepository>(),
+      productRepository: serviceLocator<ProductRepository>(),
     ),
   );
 
@@ -217,4 +217,13 @@ Future<void> initServiceLocator() async {
       removeFromWishlist: serviceLocator<RemoveFromWishlist>(),
     ),
   );
+
+  serviceLocator.registerFactory(() => AuthViewModel(
+    login: serviceLocator<Login>(),
+    register: serviceLocator<Register>(),
+    logout: serviceLocator<Logout>(),
+    getCurrentUser: serviceLocator<GetCurrentUser>(),
+    requestPasswordResetUseCase: serviceLocator<RequestPasswordReset>(),
+    updateProfileUseCase: serviceLocator<UpdateProfile>(),
+  ));
 } 
